@@ -9,14 +9,13 @@ require('dotenv').config({ path: path.join(__dirname, '.env') });
 const app    = express();
 const server = http.createServer(app);
 
-const CLIENT_URL = process.env.CLIENT_URL || 'http://localhost:5173';
-const normalizedClientUrl = CLIENT_URL.replace(/\/$/, "");
-
-const allowedOrigins = [
-  normalizedClientUrl,
-  'http://localhost:5173',
-  'http://127.0.0.1:5173'
-];
+// Build allowed origins from env — comma-separated list supported
+// e.g. CLIENT_URL=https://tourandtravel-theta.vercel.app,http://localhost:5173
+const rawOrigins = process.env.CLIENT_URL || 'http://localhost:5173';
+const allowedOrigins = rawOrigins
+  .split(',')
+  .map(o => o.trim().replace(/\/$/, ''))
+  .filter(Boolean);
 
 app.set('trust proxy', 1); // Trust the first proxy (Render/Vercel)
 
