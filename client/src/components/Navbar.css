@@ -1,0 +1,283 @@
+/* ── Navbar base ─────────────────────────────────────────────── */
+.navbar {
+  background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+  padding: 0;
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.navbar-container {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 0 24px;
+  height: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+/* ── Logo ────────────────────────────────────────────────────── */
+.navbar-logo {
+  color: #fff;
+  font-size: 22px;
+  font-weight: 800;
+  text-decoration: none;
+  letter-spacing: -0.5px;
+  background: linear-gradient(90deg, #f9a825, #ff6f61, #c471ed);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  white-space: nowrap;
+  transition: opacity 0.2s;
+}
+.navbar-logo:hover { opacity: 0.85; }
+
+/* ── Nav links list ──────────────────────────────────────────── */
+.navbar-links {
+  list-style: none;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  margin: 0;
+  padding: 0;
+  flex: 1;
+  justify-content: flex-end;
+}
+
+/* ── Individual link ─────────────────────────────────────────── */
+.nav-link {
+  color: rgba(255, 255, 255, 0.78);
+  text-decoration: none;
+  padding: 6px 11px;
+  border-radius: 8px;
+  font-size: 13.5px;
+  font-weight: 500;
+  transition: background 0.2s, color 0.2s, transform 0.15s;
+  white-space: nowrap;
+}
+.nav-link:hover {
+  background: rgba(255, 255, 255, 0.12);
+  color: #fff;
+  transform: translateY(-1px);
+}
+.nav-link.active {
+  background: linear-gradient(135deg, rgba(249,168,37,0.3), rgba(196,113,237,0.3));
+  color: #fff;
+  font-weight: 700;
+  border: 1px solid rgba(255,255,255,0.2);
+}
+
+/* ── Auth area ───────────────────────────────────────────────── */
+.auth-item { margin-left: 6px; }
+
+.auth-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.user-badge {
+  color: #fff;
+  font-size: 13px;
+  font-weight: 600;
+  background: rgba(255, 255, 255, 0.12);
+  padding: 5px 13px;
+  border-radius: 20px;
+  border: 1px solid rgba(255,255,255,0.18);
+  white-space: nowrap;
+}
+
+.login-btn {
+  background: linear-gradient(135deg, #f9a825, #ff6f61);
+  color: #fff;
+  font-weight: 700;
+  padding: 7px 20px;
+  border-radius: 22px;
+  text-decoration: none;
+  font-size: 13.5px;
+  transition: opacity 0.2s, transform 0.15s, box-shadow 0.2s;
+  box-shadow: 0 3px 12px rgba(249,168,37,0.35);
+  white-space: nowrap;
+}
+.login-btn:hover {
+  opacity: 0.9;
+  transform: translateY(-1px);
+  box-shadow: 0 5px 18px rgba(249,168,37,0.5);
+}
+
+.logout-btn {
+  background: linear-gradient(135deg, #e53935, #c62828);
+  color: #fff;
+  font-weight: 700;
+  padding: 7px 16px;
+  border-radius: 22px;
+  border: none;
+  cursor: pointer;
+  font-size: 13px;
+  transition: opacity 0.2s, transform 0.15s;
+  white-space: nowrap;
+}
+.logout-btn:hover {
+  opacity: 0.88;
+  transform: translateY(-1px);
+}
+
+/* ── Right-side action buttons ───────────────────────────────── */
+.navbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.theme-btn {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255,255,255,0.18);
+  font-size: 18px;
+  cursor: pointer;
+  border-radius: 50%;
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s, transform 0.15s;
+}
+.theme-btn:hover {
+  background: rgba(255,255,255,0.2);
+  transform: rotate(20deg) scale(1.1);
+}
+
+/* ── Hamburger ───────────────────────────────────────────────── */
+.hamburger {
+  display: none;
+  flex-direction: column;
+  justify-content: space-between;
+  width: 28px;
+  height: 20px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+}
+.hamburger span {
+  display: block;
+  height: 2.5px;
+  background: #fff;
+  border-radius: 3px;
+  transition: transform 0.3s, opacity 0.3s;
+}
+.hamburger.active span:nth-child(1) { transform: translateY(8.75px) rotate(45deg); }
+.hamburger.active span:nth-child(2) { opacity: 0; }
+.hamburger.active span:nth-child(3) { transform: translateY(-8.75px) rotate(-45deg); }
+
+/* ── Floating WhatsApp Button ────────────────────────────────── */
+.floating-whatsapp {
+  position: fixed;
+  right: 24px;
+  bottom: 24px;
+  z-index: 999;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  width: 60px;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.3s ease;
+}
+.floating-whatsapp:hover { transform: scale(1.1); }
+.floating-whatsapp:active { transform: scale(0.95); }
+
+.whatsapp-bubble {
+  position: relative;
+  width: 60px;
+  height: 60px;
+  background: linear-gradient(135deg, #25D366, #128C7E);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 16px rgba(37, 211, 102, 0.4);
+  transition: all 0.2s ease;
+}
+.floating-whatsapp:hover .whatsapp-bubble { box-shadow: 0 6px 24px rgba(37, 211, 102, 0.6); }
+
+.whatsapp-pulse {
+  position: absolute;
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  border: 2px solid rgba(37, 211, 102, 0.5);
+  animation: pulse-ring 2s infinite;
+}
+.whatsapp-pulse:nth-child(2) { animation-delay: 0.7s; }
+
+@keyframes pulse-ring {
+  0% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1.4);
+    opacity: 0;
+  }
+}
+
+.whatsapp-logo {
+  width: 32px;
+  height: 32px;
+  color: #fff;
+  position: relative;
+  z-index: 2;
+}
+
+/* ── Responsive ──────────────────────────────────────────────── */
+@media (max-width: 900px) {
+  .hamburger { display: flex; }
+
+  .navbar-links {
+    position: absolute;
+    top: 64px;
+    left: 0;
+    right: 0;
+    background: linear-gradient(160deg, #1a1a3e, #302b63);
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0;
+    padding: 12px 0 16px;
+    max-height: 0;
+    overflow: hidden;
+    opacity: 0;
+    pointer-events: none;
+    transition: max-height 0.35s ease, opacity 0.3s ease;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+    border-top: 1px solid rgba(255,255,255,0.08);
+  }
+  .navbar-links.open {
+    max-height: 600px;
+    opacity: 1;
+    pointer-events: all;
+  }
+
+  .navbar-links li { width: 100%; }
+
+  .nav-link {
+    display: block;
+    padding: 12px 24px;
+    border-radius: 0;
+    font-size: 15px;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+  }
+  .nav-link:hover { transform: none; background: rgba(255,255,255,0.08); }
+
+  .auth-item { padding: 10px 24px; }
+  .auth-group { justify-content: flex-start; }
+  
+  .floating-whatsapp { right: 16px; }
+}

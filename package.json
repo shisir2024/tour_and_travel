@@ -1,0 +1,36 @@
+{
+  "name": "my_trip_agency",
+  "version": "1.0.0",
+  "description": "",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "main": "index.js",
+  "scripts": {
+    "build": "npm install --prefix client && npm run build --prefix client",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node backend/server.js",
+    "dev": "nodemon backend/server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/shisir2024/tour_and_travel.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/shisir2024/tour_and_travel/issues"
+  },
+  "homepage": "https://github.com/shisir2024/tour_and_travel#readme",
+  "dependencies": {
+    "bcryptjs": "^3.0.3",
+    "cors": "^2.8.6",
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1",
+    "jsonwebtoken": "^9.0.3",
+    "mongoose": "^9.6.3",
+    "socket.io": "^4.8.3"
+  }
+}
