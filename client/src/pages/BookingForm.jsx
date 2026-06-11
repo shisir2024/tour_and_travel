@@ -32,7 +32,7 @@ export default function BookingForm() {
           const { name, email, phone } = profileRes.data;
           setForm(prev => ({ ...prev, name: name || '', email: email || '', phone: phone || '' }));
         }
-      } catch {
+      } catch (err) {
         toast.error('Failed to load form data. Please try again.');
       } finally {
         setLoading(false);
@@ -122,7 +122,7 @@ export default function BookingForm() {
       <Toaster position="top-right" />
       <Navbar />
       <div style={styles.page} className="dark-section">
-        <div ref={ref} className="fade-in" style={styles.card} className="dark-card">
+        <div ref={ref} className="fade-in dark-card" style={styles.card}>
           <h2 style={styles.title}>🗺️ Tour Booking Form</h2>
           <p style={{ textAlign:'center', color:'#888', fontSize:'14px', marginBottom:'20px' }}>Select an active tour package and complete your booking!</p>
           <form onSubmit={submit}>
