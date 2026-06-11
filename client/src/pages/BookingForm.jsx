@@ -18,7 +18,10 @@ export default function BookingForm() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!token) return;
+    if (!token) {
+      setLoading(false);
+      return;
+    }
     const loadData = async () => {
       try {
         // Fetch tours + profile in PARALLEL instead of sequential
