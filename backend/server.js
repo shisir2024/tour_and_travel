@@ -4,10 +4,13 @@ const path      = require('path');
 const { Server } = require('socket.io');
 const mongoose  = require('mongoose');
 const cors      = require('cors');
+const compression = require('compression');
 require('dotenv').config({ path: path.join(__dirname, '.env') });
 
 const app    = express();
 const server = http.createServer(app);
+
+app.use(compression());
 
 // Build allowed origins from env — comma-separated list supported
 // e.g. CLIENT_URL=https://tourandtravel-theta.vercel.app,http://localhost:5173
@@ -82,4 +85,14 @@ app.use((err, req, res, next) => {
 });
 
 const PORT = process.env.PORT || 5000;
-server.listen(PORT, '0.0.0.0', () => console.log(`🚀 Server ready at http://localhost:${PORT}`));
+server.listen(PORT, '0.0.0.0', () => {
+  console.log(`🚀 Server ready at http://localhost:${PORT}`);
+
+  // Keep Render free tier alive — ping every 10 minutes
+  if (process.env.RENDER_EXTERNAL_URL) {
+    setInterval(() => {
+      fetch(`${process.env.RENDER_EXTERNAL_URL}/health`)
+        .catch(() => {});
+    }, 10 * 60 * 1000);
+  }
+});

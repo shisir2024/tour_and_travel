@@ -102,6 +102,7 @@ export default function AdminDashboard() {
   const [broadcastForm, setBroadcastForm] = useState({ title: '', message: '', target: 'all' });
   const [newStaff, setNewStaff]   = useState({ name:'', email:'', password:'', phone:'', department:'', responsibilities:'' });
   const [resetPwdMap, setResetPwdMap] = useState({});
+  const cache = useRef({});
 
   // ── Data loaders ────────────────────────────────────────────────────────────
   const loadOverview = useCallback(async () => {
@@ -124,13 +125,13 @@ export default function AdminDashboard() {
     } catch { toast.error('Failed to load users.'); }
   }, [token, userPage, userSearch, userRoleFilter]);
 
-  const loadStaff    = async () => { try { const r = await apiFetch('/admin/staff/performance', { token }); setStaffPerf(r.data); } catch { toast.error('Failed to load staff.'); } };
-  const loadFinance  = async () => { try { const r = await apiFetch('/admin/finance', { token }); setFinance(r.data); } catch { toast.error('Failed to load finance.'); } };
-  const loadTours    = async () => { try { const r = await apiFetch('/tours', { token }); setTours(r.data); } catch { toast.error('Failed to load tours.'); } };
+  const loadStaff    = async () => { if (cache.current.staff)    { setStaffPerf(cache.current.staff);   return; } try { const r = await apiFetch('/admin/staff/performance', { token }); setStaffPerf(r.data);   cache.current.staff    = r.data; } catch { toast.error('Failed to load staff.'); } };
+  const loadFinance  = async () => { if (cache.current.finance)  { setFinance(cache.current.finance);   return; } try { const r = await apiFetch('/admin/finance', { token });              setFinance(r.data);    cache.current.finance  = r.data; } catch { toast.error('Failed to load finance.'); } };
+  const loadTours    = async () => { if (cache.current.tours)    { setTours(cache.current.tours);       return; } try { const r = await apiFetch('/tours', { token });                      setTours(r.data);      cache.current.tours    = r.data; } catch { toast.error('Failed to load tours.'); } };
   const loadAudit    = async () => { try { const r = await apiFetch(`/admin/audit-logs?page=${auditPage}&limit=20`, { token }); setAuditLogs(r.data); setAuditTotal(r.total); } catch { toast.error('Failed to load audit logs.'); } };
-  const loadSystem   = async () => { try { const r = await apiFetch('/admin/system-status', { token }); setSysStatus(r.data); } catch { toast.error('Failed to load system status.'); } };
+  const loadSystem   = async () => { if (cache.current.system)   { setSysStatus(cache.current.system); return; } try { const r = await apiFetch('/admin/system-status', { token });    setSysStatus(r.data);  cache.current.system   = r.data; } catch { toast.error('Failed to load system status.'); } };
   const loadSecurity = async () => { try { const r = await apiFetch('/admin/security/failed-logins', { token }); setFailedLogins(r.data); } catch { toast.error('Failed to load security data.'); } };
-  const loadSettings = async () => { try { const r = await apiFetch('/admin/settings', { token }); setSettings(r.data); setSettingsForm(r.data); } catch { toast.error('Failed to load settings.'); } };
+  const loadSettings = async () => { if (cache.current.settings) { setSettings(cache.current.settings); setSettingsForm(cache.current.settings); return; } try { const r = await apiFetch('/admin/settings', { token }); setSettings(r.data); setSettingsForm(r.data); cache.current.settings = r.data; } catch { toast.error('Failed to load settings.'); } };
 
   useEffect(() => { loadOverview(); }, [loadOverview]);
 
