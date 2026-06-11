@@ -32,7 +32,7 @@ export const apiFetch = async (path, { method = 'GET', body, token } = {}) => {
       ['isLoggedIn','loggedInUser','userRole','loggedInEmail','userId','authToken']
         .forEach(k => localStorage.removeItem(k));
       window.location.href = '/login';
-      return;
+      throw new Error('unauthorized');
     }
     throw new Error(data.message || 'Request failed');
   }

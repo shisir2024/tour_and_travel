@@ -24,7 +24,6 @@ export default function BookingForm() {
     }
     const loadData = async () => {
       try {
-        // Fetch tours + profile in PARALLEL instead of sequential
         const [toursRes, profileRes] = await Promise.all([
           apiFetch('/tours', { token }),
           apiFetch('/user/profile', { token }),
@@ -36,6 +35,10 @@ export default function BookingForm() {
           setForm(prev => ({ ...prev, name: name || '', email: email || '', phone: phone || '' }));
         }
       } catch (err) {
+        if (err?.message?.toLowerCase().includes('token') || err?.message?.toLowerCase().includes('unauthorized')) {
+          // stale token — silently redirect, apiFetch already cleared localStorage
+          return;
+        }
         toast.error('Failed to load form data. Please try again.');
       } finally {
         setLoading(false);
