@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef, useMemo, useCallback } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
@@ -50,18 +50,15 @@ export default function Home() {
     return () => clearInterval(t);
   }, []);
 
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
     try {
-      // 1. Fetch tours
       const toursRes = await apiFetch('/tours', { token });
       if (toursRes?.data) setTours(toursRes.data);
 
       if (isAuth && userRole === 'client') {
-        // 2. Fetch client's bookings
         const bookingsRes = await apiFetch('/bookings/client/mine', { token });
         if (bookingsRes?.data) setBookings(bookingsRes.data);
 
-        // 3. Fetch client's recent notifications
         const notifRes = await apiFetch('/notifications/my', { token });
         if (notifRes?.data) setNotifications(notifRes.data.slice(0, 3));
       }
@@ -70,7 +67,7 @@ export default function Home() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [token, isAuth, userRole]);
 
   useEffect(() => {
     if (token) {
@@ -78,9 +75,9 @@ export default function Home() {
     } else {
       setLoading(false);
     }
-  }, [token, isAuth, userRole]);
+  }, [loadData]);
 
-  // Socket.IO listeners for real-time synchronization
+  // Socket.IO listeners — targeted state updates, no full reload
   useEffect(() => {
     if (!token) return;
     const socket = getSocket();
@@ -98,62 +95,70 @@ export default function Home() {
       }
     };
 
-    const handleBookingStatusUpdated = () => {
-      // Reload bookings and notifications
-      loadData();
+    const handleBookingStatusUpdated = (updatedBooking) => {
+      if (updatedBooking?._id) {
+        setBookings(prev => prev.map(b => b._id === updatedBooking._id ? { ...b, ...updatedBooking } : b));
+      }
+    };
+
+    const handleNewNotification = (data) => {
+      if (data?._id) {
+        setNotifications(prev => [data, ...prev].slice(0, 3));
+      }
     };
 
     socket.on('tours-updated', handleToursUpdated);
     socket.on('booking-status-updated', handleBookingStatusUpdated);
-    socket.on('new-notification', handleBookingStatusUpdated);
+    socket.on('new-notification', handleNewNotification);
 
     return () => {
       socket.off('tours-updated', handleToursUpdated);
       socket.off('booking-status-updated', handleBookingStatusUpdated);
-      socket.off('new-notification', handleBookingStatusUpdated);
+      socket.off('new-notification', handleNewNotification);
     };
   }, [token]);
 
-  const activeTours = tours.filter(t => t.status === 'active');
+  const activeTours = useMemo(() => tours.filter(t => t.status === 'active'), [tours]);
 
-  const categories = ['All', ...new Set(activeTours.map(t => {
-    // derive category tag
-    if (t.tourName.toLowerCase().includes('beach') || t.destination.toLowerCase().includes('goa')) return 'Beach';
-    if (t.tourName.toLowerCase().includes('hill') || t.tourName.toLowerCase().includes('snow') || t.destination.toLowerCase().includes('manali')) return 'Snow';
-    if (t.tourName.toLowerCase().includes('forest') || t.tourName.toLowerCase().includes('jungle') || t.destination.toLowerCase().includes('kerala')) return 'Nature';
-    if (t.tourName.toLowerCase().includes('luxury') || t.destination.toLowerCase().includes('maldives')) return 'Luxury';
+  const getCategory = (t) => {
+    const n = t.tourName.toLowerCase(), d = t.destination.toLowerCase();
+    if (n.includes('beach') || d.includes('goa')) return 'Beach';
+    if (n.includes('hill') || n.includes('snow') || d.includes('manali')) return 'Snow';
+    if (n.includes('forest') || n.includes('jungle') || d.includes('kerala')) return 'Nature';
+    if (n.includes('luxury') || d.includes('maldives')) return 'Luxury';
     return 'Adventure';
-  }))];
+  };
 
-  const destinations = ['All', ...new Set(activeTours.map(t => t.destination))];
+  const categories = useMemo(() =>
+    ['All', ...new Set(activeTours.map(getCategory))]
+  , [activeTours]);
 
-  const filteredTours = activeTours.filter(t => {
-    const category = t.tourName.toLowerCase().includes('beach') || t.destination.toLowerCase().includes('goa') ? 'Beach' :
-                     t.tourName.toLowerCase().includes('hill') || t.tourName.toLowerCase().includes('snow') || t.destination.toLowerCase().includes('manali') ? 'Snow' :
-                     t.tourName.toLowerCase().includes('forest') || t.tourName.toLowerCase().includes('jungle') || t.destination.toLowerCase().includes('kerala') ? 'Nature' :
-                     t.tourName.toLowerCase().includes('luxury') || t.destination.toLowerCase().includes('maldives') ? 'Luxury' : 'Adventure';
-    
-    return (filter === 'All' || category === filter) &&
-           (country === 'All' || t.destination === country);
-  });
+  const destinations = useMemo(() =>
+    ['All', ...new Set(activeTours.map(t => t.destination))]
+  , [activeTours]);
 
-  // Compile dashboard information
-  const upcomingTrips = bookings.filter(b => b.status === 'confirmed' || b.status === 'in-progress' || (b.status === 'pending' && b.paymentStatus !== 'paid'));
-  const bookingHistory = bookings.filter(b => b.status === 'completed' || b.status === 'cancelled');
+  const filteredTours = useMemo(() =>
+    activeTours.filter(t => {
+      const cat = getCategory(t);
+      return (filter === 'All' || cat === filter) &&
+             (country === 'All' || t.destination === country);
+    })
+  , [activeTours, filter, country]);
 
-  // Personalized Recommendations:
-  // If the user has booked tours before, find their favorite destination categories and recommend active tours of similar categories
-  const getRecommendations = () => {
-    if (bookings.length === 0) {
-      // default: return first 3 active tours
-      return activeTours.slice(0, 3);
-    }
+  const upcomingTrips = useMemo(() =>
+    bookings.filter(b => b.status === 'confirmed' || b.status === 'in-progress' || (b.status === 'pending' && b.paymentStatus !== 'paid'))
+  , [bookings]);
+
+  const bookingHistory = useMemo(() =>
+    bookings.filter(b => b.status === 'completed' || b.status === 'cancelled')
+  , [bookings]);
+
+  const recommendedTours = useMemo(() => {
+    if (bookings.length === 0) return activeTours.slice(0, 3);
     const bookedDestinations = bookings.map(b => b.tourId?.destination).filter(Boolean);
     const recommended = activeTours.filter(t => bookedDestinations.includes(t.destination) && !bookings.some(b => b.tourId?._id === t._id));
     return recommended.length > 0 ? recommended.slice(0, 3) : activeTours.slice(0, 3);
-  };
-
-  const recommendedTours = getRecommendations();
+  }, [activeTours, bookings]);
   const slide = offers[slideIdx];
 
   const handleMarkNotificationRead = async (id) => {
@@ -395,19 +400,19 @@ export default function Home() {
                   : filteredTours.map(p => {
                       // derive dummy image and tag
                       let tag = 'Adventure';
-                      let img = 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e';
+                      let img = 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&q=70&auto=format';
                       if (p.tourName.toLowerCase().includes('beach') || p.destination.toLowerCase().includes('goa')) {
                         tag = 'Beach';
-                        img = 'https://images.unsplash.com/photo-1614082242765-7c98ca0f3df3';
+                        img = 'https://images.unsplash.com/photo-1614082242765-7c98ca0f3df3?w=800&q=70&auto=format';
                       } else if (p.tourName.toLowerCase().includes('hill') || p.tourName.toLowerCase().includes('snow') || p.destination.toLowerCase().includes('manali')) {
                         tag = 'Snow';
-                        img = 'https://images.unsplash.com/photo-1626621341517-bbf3d9990a23';
+                        img = 'https://images.unsplash.com/photo-1626621341517-bbf3d9990a23?w=800&q=70&auto=format';
                       } else if (p.tourName.toLowerCase().includes('forest') || p.tourName.toLowerCase().includes('jungle') || p.destination.toLowerCase().includes('kerala')) {
                         tag = 'Nature';
-                        img = 'https://images.unsplash.com/photo-1602216056096-3b40cc0c9944';
+                        img = 'https://images.unsplash.com/photo-1602216056096-3b40cc0c9944?w=800&q=70&auto=format';
                       } else if (p.tourName.toLowerCase().includes('luxury') || p.destination.toLowerCase().includes('maldives')) {
                         tag = 'Luxury';
-                        img = 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e';
+                        img = 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=800&q=70&auto=format';
                       }
 
                       return (
@@ -499,7 +504,7 @@ function SkeletonCard() {
 
 const st = {
   /* hero */
-  hero:           { position:'relative', minHeight:'500px', background:'url(https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1) center/cover no-repeat', display:'flex', alignItems:'center', justifyContent:'center', textAlign:'center', color:'#fff' },
+  hero:           { position:'relative', minHeight:'500px', background:'url(https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?w=1400&q=70&auto=format) center/cover no-repeat', display:'flex', alignItems:'center', justifyContent:'center', textAlign:'center', color:'#fff' },
   heroOverlay:    { position:'absolute', inset:0, background:'linear-gradient(to bottom, rgba(3, 7, 18, 0.8), rgba(17, 24, 39, 0.6))' },
   heroContent:    { position:'relative', zIndex:1, maxWidth:'800px', padding:'40px 20px', display: 'flex', flexDirection: 'column', alignItems: 'center' },
   heroWelcome:    { fontSize:'14px', letterSpacing:'3px', color:'#fbbf24', fontWeight:'bold', marginBottom:'14px' },

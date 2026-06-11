@@ -1,26 +1,26 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { ThemeProvider } from './context/ThemeContext';
+import { lazy, Suspense } from 'react';
 import './App.css';
 
-import Home           from './pages/Home';
-import About          from './pages/About';
-import Faq            from './pages/Faq';
-import Contact        from './pages/Contact';
-import Privacy        from './pages/Privacy';
-import BookingForm    from './pages/BookingForm';
-import Login          from './pages/Login';
-import Signup         from './pages/Signup';
-import ForgotPassword from './pages/ForgotPassword';
-import Milestones     from './pages/Milestones';
-import MyBookings     from './pages/MyBookings';
-
-import StaffDashboard  from './pages/StaffDashboard';
-import AdminDashboard  from './pages/AdminDashboard';
-import Tours           from './pages/Tours';
-import Customers       from './pages/Customers';
-import Bookings        from './pages/Bookings';
-import Notifications   from './pages/Notifications';
+const Home           = lazy(() => import('./pages/Home'));
+const About          = lazy(() => import('./pages/About'));
+const Faq            = lazy(() => import('./pages/Faq'));
+const Contact        = lazy(() => import('./pages/Contact'));
+const Privacy        = lazy(() => import('./pages/Privacy'));
+const BookingForm    = lazy(() => import('./pages/BookingForm'));
+const Login          = lazy(() => import('./pages/Login'));
+const Signup         = lazy(() => import('./pages/Signup'));
+const ForgotPassword = lazy(() => import('./pages/ForgotPassword'));
+const Milestones     = lazy(() => import('./pages/Milestones'));
+const MyBookings     = lazy(() => import('./pages/MyBookings'));
+const StaffDashboard = lazy(() => import('./pages/StaffDashboard'));
+const AdminDashboard = lazy(() => import('./pages/AdminDashboard'));
+const Tours          = lazy(() => import('./pages/Tours'));
+const Customers      = lazy(() => import('./pages/Customers'));
+const Bookings       = lazy(() => import('./pages/Bookings'));
+const Notifications  = lazy(() => import('./pages/Notifications'));
 
 function Protected({ children, allowedRoles }) {
   const { isAuth, userRole } = useAuth();
@@ -38,6 +38,7 @@ function Protected({ children, allowedRoles }) {
 
 function AppRoutes() {
   return (
+    <Suspense fallback={<div style={{ minHeight: '100vh', background: '#030712', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#9ca3af', fontSize: '16px' }}>Loading...</div>}>
     <Routes>
       <Route path="/"       element={<Navigate to="/login" replace />} />
       <Route path="/signup" element={<Signup />} />
@@ -66,6 +67,7 @@ function AppRoutes() {
 
       <Route path="*" element={<Navigate to="/login" replace />} />
     </Routes>
+    </Suspense>
   );
 }
 

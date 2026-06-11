@@ -2,9 +2,9 @@ const getBaseUrl = () => {
   const envUrl = import.meta.env.VITE_API_URL;
   if (envUrl) return envUrl.replace(/\/$/, "");
   
-  // If running in development (Vite), default to localhost:5000
+  // If running in development (Vite), default to localhost:5001
   if (import.meta.env.DEV) {
-    return 'http://localhost:5000';
+    return 'http://localhost:5001';
   }
   
   // In production, if served by the backend, use relative path

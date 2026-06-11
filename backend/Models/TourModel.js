@@ -10,6 +10,7 @@ const TourSchema = new mongoose.Schema({
   endDate:        { type: Date, required: true },
   maxCapacity:    { type: Number, required: true, min: 1 },
   availableSeats: { type: Number, required: true, min: 0 },
+  imageUrl:       { type: String, default: '' },
   assignedGuide:  { type: mongoose.Schema.Types.ObjectId, ref: 'User', default: null },
   status:         { type: String, enum: ['active','completed','cancelled'], default: 'active' },
   createdBy:      { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },

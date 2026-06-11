@@ -3,12 +3,12 @@ const Notification = require('../Models/NotificationModel');
 
 const createTour = async (req, res) => {
   try {
-    const { tourName, destination, description, duration, price, startDate, endDate, maxCapacity } = req.body;
+    const { tourName, destination, description, duration, price, startDate, endDate, maxCapacity, imageUrl } = req.body;
     if (!tourName || !destination || !duration || !price || !startDate || !endDate || !maxCapacity)
       return res.status(400).json({ message: 'All required fields must be filled.' });
     const tour = await Tour.create({
       tourName, destination, description, duration, price, startDate, endDate,
-      maxCapacity, availableSeats: maxCapacity, createdBy: req.user.id,
+      maxCapacity, availableSeats: maxCapacity, imageUrl: imageUrl || '', createdBy: req.user.id,
     });
     const populated = await tour.populate('createdBy', 'name email');
     // Notify clients of new tour

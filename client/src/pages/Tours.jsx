@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo, useCallback, useRef } from 'react';
 import { useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { apiFetch } from '../utils/api';
@@ -13,6 +13,8 @@ export default function Tours() {
   const [tours, setTours] = useState([]);
   const [guides, setGuides] = useState([]);
   const [search, setSearch] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
+  const debounceRef = useRef(null);
   const [loading, setLoading] = useState(true);
 
   // Modal control
@@ -29,7 +31,8 @@ export default function Tours() {
     price: '',
     startDate: '',
     endDate: '',
-    maxCapacity: ''
+    maxCapacity: '',
+    imageUrl: ''
   });
 
   const isStaff = userRole === 'staff';
@@ -82,7 +85,8 @@ export default function Tours() {
       price: '',
       startDate: '',
       endDate: '',
-      maxCapacity: ''
+      maxCapacity: '',
+      imageUrl: ''
     });
     setIsModalOpen(true);
   };
@@ -98,7 +102,8 @@ export default function Tours() {
       price: tour.price,
       startDate: tour.startDate.split('T')[0],
       endDate: tour.endDate.split('T')[0],
-      maxCapacity: tour.maxCapacity
+      maxCapacity: tour.maxCapacity,
+      imageUrl: tour.imageUrl || ''
     });
     setIsModalOpen(true);
   };
@@ -171,10 +176,18 @@ export default function Tours() {
     }
   };
 
-  const filteredTours = tours.filter(t => 
-    t.tourName?.toLowerCase().includes(search.toLowerCase()) || 
-    t.destination?.toLowerCase().includes(search.toLowerCase())
-  );
+  const handleSearchChange = (e) => {
+    setSearch(e.target.value);
+    clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => setDebouncedSearch(e.target.value), 300);
+  };
+
+  const filteredTours = useMemo(() =>
+    tours.filter(t =>
+      t.tourName?.toLowerCase().includes(debouncedSearch.toLowerCase()) ||
+      t.destination?.toLowerCase().includes(debouncedSearch.toLowerCase())
+    )
+  , [tours, debouncedSearch]);
 
   if (loading) {
     return (
@@ -213,7 +226,7 @@ export default function Tours() {
             style={styles.searchInput}
             placeholder="🔍 Search by name or destination..."
             value={search}
-            onChange={(e) => setSearch(e.target.value)}
+            onChange={handleSearchChange}
           />
         </div>
 
@@ -226,6 +239,14 @@ export default function Tours() {
           <div style={styles.grid}>
             {filteredTours.map(tour => (
               <div key={tour._id} style={styles.card}>
+                {tour.imageUrl && (
+                  <img
+                    src={tour.imageUrl}
+                    alt={tour.destination}
+                    style={styles.cardImg}
+                    onError={e => { e.target.style.display = 'none'; }}
+                  />
+                )}
                 <div style={styles.cardHeader}>
                   <h3 style={styles.cardTitle}>{tour.tourName}</h3>
                   <StatusBadge status={tour.status} />
@@ -320,6 +341,28 @@ export default function Tours() {
               <label style={styles.label}>End Date</label>
               <input type="date" name="endDate" required style={styles.input} value={form.endDate} onChange={handleFormChange} />
             </div>
+          </div>
+          <div style={styles.formGroup}>
+            <label style={styles.label}>Place Image URL</label>
+            <input
+              type="url"
+              name="imageUrl"
+              placeholder="https://images.unsplash.com/..."
+              style={styles.input}
+              value={form.imageUrl}
+              onChange={handleFormChange}
+            />
+            {form.imageUrl && (
+              <div style={styles.imgPreviewWrap}>
+                <img
+                  src={form.imageUrl}
+                  alt="Preview"
+                  style={styles.imgPreview}
+                  onError={e => { e.target.style.display = 'none'; }}
+                />
+                <span style={styles.imgPreviewLabel}>📸 Preview</span>
+              </div>
+            )}
           </div>
           <div style={styles.formGroup}>
             <label style={styles.label}>Description</label>
@@ -426,17 +469,24 @@ const styles = {
     backdropFilter: 'blur(16px)',
     border: '1px solid rgba(255, 255, 255, 0.08)',
     borderRadius: '16px',
-    padding: '24px',
+    overflow: 'hidden',
     display: 'flex',
     flexDirection: 'column',
     boxShadow: '0 10px 30px rgba(0, 0, 0, 0.25)'
+  },
+  cardImg: {
+    width: '100%',
+    height: '180px',
+    objectFit: 'cover',
+    display: 'block'
   },
   cardHeader: {
     display: 'flex',
     justifyContent: 'space-between',
     alignItems: 'flex-start',
     gap: '12px',
-    marginBottom: '12px'
+    marginBottom: '12px',
+    padding: '20px 24px 0'
   },
   cardTitle: {
     margin: 0,
@@ -446,7 +496,7 @@ const styles = {
   cardDesc: {
     fontSize: '13px',
     color: '#9ca3af',
-    margin: '0 0 16px 0',
+    margin: '0 24px 16px',
     lineHeight: '1.5',
     flexGrow: 1
   },
@@ -459,7 +509,8 @@ const styles = {
     background: 'rgba(255, 255, 255, 0.02)',
     padding: '12px',
     borderRadius: '10px',
-    marginBottom: '16px'
+    marginBottom: '16px',
+    margin: '0 24px 16px'
   },
   metaItem: {
     whiteSpace: 'nowrap',
@@ -468,8 +519,8 @@ const styles = {
   },
   guideBox: {
     borderTop: '1px solid rgba(255, 255, 255, 0.08)',
-    paddingTop: '14px',
-    marginBottom: '16px'
+    padding: '14px 24px',
+    marginBottom: '0'
   },
   guideLabel: {
     fontSize: '12px',
@@ -495,7 +546,31 @@ const styles = {
   cardActions: {
     display: 'flex',
     gap: '12px',
-    marginTop: 'auto'
+    marginTop: 'auto',
+    padding: '0 24px 20px'
+  },
+  imgPreviewWrap: {
+    marginTop: '10px',
+    position: 'relative',
+    borderRadius: '10px',
+    overflow: 'hidden',
+    border: '1px solid rgba(255,255,255,0.1)'
+  },
+  imgPreview: {
+    width: '100%',
+    height: '150px',
+    objectFit: 'cover',
+    display: 'block'
+  },
+  imgPreviewLabel: {
+    position: 'absolute',
+    bottom: '8px',
+    left: '10px',
+    fontSize: '11px',
+    color: '#fff',
+    background: 'rgba(0,0,0,0.55)',
+    padding: '2px 8px',
+    borderRadius: '10px'
   },
   editBtn: {
     flex: 1,

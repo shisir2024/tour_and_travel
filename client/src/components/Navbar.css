@@ -281,3 +281,79 @@
   
   .floating-whatsapp { right: 16px; }
 }
+
+/* ── Hamburger Dropdown Menu ──────────────────────────────────── */
+.hamburger-dropdown-container {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.hamburger-menu-btn {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  width: 24px;
+  height: 18px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  margin-left: 12px;
+}
+
+.hamburger-menu-btn span {
+  display: block;
+  height: 2.5px;
+  background: #fff;
+  border-radius: 3px;
+  transition: transform 0.3s, opacity 0.3s;
+}
+
+.hamburger-menu-btn.active span:nth-child(1) { transform: translateY(7.75px) rotate(45deg); }
+.hamburger-menu-btn.active span:nth-child(2) { opacity: 0; }
+.hamburger-menu-btn.active span:nth-child(3) { transform: translateY(-7.75px) rotate(-45deg); }
+
+.hamburger-dropdown-menu {
+  position: absolute;
+  top: 40px;
+  right: 0;
+  background: #24243e;
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 8px;
+  padding: 8px 0;
+  min-width: 150px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+  display: flex;
+  flex-direction: column;
+  z-index: 1001;
+}
+
+.dropdown-link {
+  color: #fff;
+  text-decoration: none;
+  padding: 10px 16px;
+  font-size: 14px;
+  transition: background 0.2s;
+}
+
+.dropdown-link:hover {
+  background: rgba(255,255,255,0.1);
+}
+
+.dropdown-logout-btn {
+  background: none;
+  border: none;
+  color: #ff6f61;
+  text-align: left;
+  padding: 10px 16px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+  width: 100%;
+}
+
+.dropdown-logout-btn:hover {
+  background: rgba(255,255,255,0.1);
+}

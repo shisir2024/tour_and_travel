@@ -14,6 +14,17 @@ export default function Navbar() {
   const { dark, toggle } = useTheme();
   const [open, setOpen]  = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (dropdownOpen && !e.target.closest('.hamburger-dropdown-container')) {
+        setDropdownOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [dropdownOpen]);
 
   useEffect(() => {
     if (!token) return;
@@ -51,7 +62,7 @@ export default function Navbar() {
     return () => {
       socket.off('new-notification', handleNewNotification);
     };
-  }, [token, pathname]);
+  }, [token]);
 
   const getLinks = () => {
     if (!isAuth) return [];
@@ -76,8 +87,6 @@ export default function Navbar() {
     return [
       { to: '/home',        label: '🏠 Home' },
       { to: '/about',       label: '📖 About' },
-      { to: '/faq',         label: '❓ FAQ' },
-      { to: '/contact',     label: '📬 Contact' },
       { to: '/booking',     label: '✈️ Book Tour' },
       { to: '/milestones',  label: '🏆 Milestones' },
       { to: '/my-bookings', label: '🗓️ My Bookings' },
@@ -124,7 +133,22 @@ export default function Navbar() {
               {isAuth ? (
                 <div className="auth-group">
                   <span className="user-badge">{userName} ({userRole})</span>
-                  <button className="logout-btn" onClick={handleLogout}>Logout</button>
+                  <div className="hamburger-dropdown-container">
+                    <button className={`hamburger-menu-btn ${dropdownOpen ? 'active' : ''}`} onClick={() => setDropdownOpen(!dropdownOpen)}>
+                      <span /><span /><span />
+                    </button>
+                    {dropdownOpen && (
+                      <div className="hamburger-dropdown-menu">
+                        {userRole === 'client' && (
+                          <>
+                            <Link to="/contact" className="dropdown-link" onClick={() => setDropdownOpen(false)}>📬 Contact</Link>
+                            <Link to="/faq" className="dropdown-link" onClick={() => setDropdownOpen(false)}>❓ FAQ</Link>
+                          </>
+                        )}
+                        <button className="dropdown-logout-btn" onClick={() => { setDropdownOpen(false); handleLogout(); }}>🚪 Logout</button>
+                      </div>
+                    )}
+                  </div>
                 </div>
               ) : (
                 <Link to="/login" className="login-btn" onClick={() => setOpen(false)}>Login</Link>
