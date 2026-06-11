@@ -3,14 +3,12 @@ import { useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import toast, { Toaster } from 'react-hot-toast';
-import { useFadeIn } from '../hooks/useFadeIn';
 import { useAuth } from '../context/AuthContext';
 import { apiFetch } from '../utils/api';
 
 export default function BookingForm() {
   const navigate = useNavigate();
-  const ref      = useFadeIn();
-  const { token, isAuth } = useAuth();
+  const { token } = useAuth();
   
   const [tours, setTours] = useState([]);
   const [form, setForm] = useState({ name: '', email: '', phone: '', tourId: '', travelers: '1' });
@@ -128,7 +126,7 @@ export default function BookingForm() {
       <Toaster position="top-right" />
       <Navbar />
       <div style={styles.page} className="dark-section">
-        <div ref={ref} className="fade-in dark-card" style={styles.card}>
+        <div style={styles.card}>
           <h2 style={styles.title}>🗺️ Tour Booking Form</h2>
           <p style={{ textAlign:'center', color:'#888', fontSize:'14px', marginBottom:'20px' }}>Select an active tour package and complete your booking!</p>
           <form onSubmit={submit}>
