@@ -26,6 +26,15 @@ export const apiFetch = async (path, { method = 'GET', body, token } = {}) => {
   });
   
   const data = await res.json();
-  if (!res.ok) throw new Error(data.message || 'Request failed');
+  if (!res.ok) {
+    // Token expired or invalid — clear storage and redirect to login
+    if (res.status === 401) {
+      ['isLoggedIn','loggedInUser','userRole','loggedInEmail','userId','authToken']
+        .forEach(k => localStorage.removeItem(k));
+      window.location.href = '/login';
+      return;
+    }
+    throw new Error(data.message || 'Request failed');
+  }
   return data;
 };
