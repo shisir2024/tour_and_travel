@@ -11,6 +11,7 @@ export default function Signup() {
   const navigate = useNavigate();
   const { isAuth, userRole } = useAuth();
   const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
   const [role, setRole] = useState('client');
   const { values, handleChange } = useForm({ name: '', email: '', password: '', confirm: '', phone: '' });
 
@@ -18,7 +19,6 @@ export default function Signup() {
   const [btnHover, setBtnHover] = useState(false);
   const [loginLinkHover, setLoginLinkHover] = useState(false);
 
-  // All hooks above — early return after
   if (isAuth) {
     return <Navigate to={userRole === 'staff' ? '/staff-dashboard' : '/home'} replace />;
   }
@@ -29,16 +29,18 @@ export default function Signup() {
     if (!values.name || !values.email || !values.password || !values.confirm) { setError('All fields are required.'); return; }
     if (values.password.length < 6) { setError('Password must be at least 6 characters.'); return; }
     if (values.password !== values.confirm) { setError('Passwords do not match.'); return; }
-
+    setLoading(true);
     try {
       await apiFetch('/user/signup', {
-        method:  'POST',
-        body:    { name: values.name, email: values.email, password: values.password, phone: values.phone, role },
+        method: 'POST',
+        body:   { name: values.name, email: values.email, password: values.password, phone: values.phone, role },
       });
       toast.success('Account created! Please login.');
       setTimeout(() => navigate('/login'), 1500);
     } catch (err) {
       setError(err.message || 'Server error. Please try again.');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -131,12 +133,13 @@ export default function Signup() {
             </select>
 
             <button
-              style={styles.btn(btnHover)}
+              style={styles.btn(btnHover, loading)}
               type="submit"
+              disabled={loading}
               onMouseEnter={() => setBtnHover(true)}
               onMouseLeave={() => setBtnHover(false)}
             >
-              Sign Up
+              {loading ? 'Creating Account...' : 'Sign Up'}
             </button>
           </form>
           <p style={styles.switchText}>
@@ -170,28 +173,18 @@ const styles = {
     boxSizing: 'border-box'
   },
   glowCircle1: {
-    position: 'absolute',
-    top: '10%',
-    left: '10%',
-    width: '400px',
-    height: '400px',
-    background: 'rgba(99, 102, 241, 0.12)',
-    borderRadius: '50%',
-    filter: 'blur(100px)',
-    zIndex: 1,
-    pointerEvents: 'none',
+    position: 'absolute', top: '10%', left: '10%',
+    width: '400px', height: '400px',
+    background: 'rgba(99, 102, 241, 0.12)', borderRadius: '50%',
+    filter: 'blur(60px)', zIndex: 1, pointerEvents: 'none',
+    willChange: 'transform',
   },
   glowCircle2: {
-    position: 'absolute',
-    bottom: '10%',
-    right: '10%',
-    width: '450px',
-    height: '450px',
-    background: 'rgba(236, 72, 153, 0.08)',
-    borderRadius: '50%',
-    filter: 'blur(110px)',
-    zIndex: 1,
-    pointerEvents: 'none',
+    position: 'absolute', bottom: '10%', right: '10%',
+    width: '450px', height: '450px',
+    background: 'rgba(236, 72, 153, 0.08)', borderRadius: '50%',
+    filter: 'blur(60px)', zIndex: 1, pointerEvents: 'none',
+    willChange: 'transform',
   },
   container: {
     display: 'flex',
@@ -292,7 +285,7 @@ const styles = {
     background: '#111827',
     color: '#fff'
   },
-  btn: (isHovered) => ({
+  btn: (isHovered, isLoading) => ({
     marginTop: '28px',
     padding: '13px',
     background: isHovered ? 'linear-gradient(135deg, #5a52e6, #8b4bf0)' : 'linear-gradient(135deg, #4f46e5, #7c3aed)',
@@ -300,11 +293,12 @@ const styles = {
     border: 'none',
     borderRadius: '10px',
     fontSize: '15px',
-    cursor: 'pointer',
+    cursor: isLoading ? 'not-allowed' : 'pointer',
     fontWeight: '600',
-    transform: isHovered ? 'translateY(-1px)' : 'none',
+    transform: isHovered && !isLoading ? 'translateY(-1px)' : 'none',
     boxShadow: isHovered ? '0 8px 24px rgba(124, 58, 237, 0.4)' : '0 4px 12px rgba(124, 58, 237, 0.2)',
-    transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)'
+    transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+    opacity: isLoading ? 0.7 : 1,
   }),
   switchText: {
     textAlign: 'center',

@@ -18,36 +18,27 @@ export default function BookingForm() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    if (!token) return;
     const loadData = async () => {
       try {
-        // Fetch active tours
-        const toursRes = await apiFetch('/tours', { token });
-        if (toursRes?.data) {
-          const activeTours = toursRes.data.filter(t => t.status === 'active');
-          setTours(activeTours);
-        }
-
-        // Fetch user profile to prefill name, email, phone
-        const profileRes = await apiFetch('/user/profile', { token });
+        // Fetch tours + profile in PARALLEL instead of sequential
+        const [toursRes, profileRes] = await Promise.all([
+          apiFetch('/tours', { token }),
+          apiFetch('/user/profile', { token }),
+        ]);
+        if (toursRes?.data)
+          setTours(toursRes.data.filter(t => t.status === 'active'));
         if (profileRes?.data) {
           const { name, email, phone } = profileRes.data;
-          setForm(prev => ({
-            ...prev,
-            name: name || '',
-            email: email || '',
-            phone: phone || ''
-          }));
+          setForm(prev => ({ ...prev, name: name || '', email: email || '', phone: phone || '' }));
         }
-      } catch (err) {
+      } catch {
         toast.error('Failed to load form data. Please try again.');
       } finally {
         setLoading(false);
       }
     };
-
-    if (token) {
-      loadData();
-    }
+    loadData();
   }, [token]);
 
   const selectedTour = tours.find(t => t._id === form.tourId);
@@ -107,10 +98,22 @@ export default function BookingForm() {
 
   if (loading) {
     return (
-      <div style={styles.loadingWrap}>
-        <div style={styles.spinner}></div>
-        <p style={{ color: '#9ca3af', marginTop: '16px' }}>Preparing Booking Form...</p>
-      </div>
+      <>
+        <Navbar />
+        <div style={styles.page}>
+          <div style={styles.card}>
+            <div style={{ height: 28, width: '60%', margin: '0 auto 20px', borderRadius: 8, background: 'rgba(255,255,255,0.06)', animation: 'pulse 1.5s ease-in-out infinite' }} />
+            {[1,2,3,4].map(i => (
+              <div key={i} style={{ marginBottom: 16 }}>
+                <div style={{ height: 13, width: '30%', borderRadius: 6, background: 'rgba(255,255,255,0.05)', marginBottom: 8 }} />
+                <div style={{ height: 42, borderRadius: 8, background: 'rgba(255,255,255,0.04)' }} />
+              </div>
+            ))}
+            <div style={{ height: 46, borderRadius: 8, background: 'rgba(79,70,229,0.3)', marginTop: 16 }} />
+          </div>
+        </div>
+        <Footer />
+      </>
     );
   }
 
